@@ -4,7 +4,7 @@ import numpy as np
 import pickle
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder, LabelEncoder
 
-with open('model.pkl', 'rb') as file:
+with open('MDBonus1.pkl', 'rb') as file:
     model = pickle.load(file)
 
 ordinal_encoder = OrdinalEncoder(categories=[['no', 'Sometimes', 'Frequently', 'Always']])
