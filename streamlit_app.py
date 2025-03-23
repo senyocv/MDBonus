@@ -19,6 +19,9 @@ else:
 target_column = "NObeyesdad"
 feature_names = data.drop(columns=[target_column]).columns.tolist()
 
+# Identify categorical columns
+cat_cols = [col for col in feature_names if data[col].dtype == 'object']
+
 # Load trained model
 if not os.path.exists(MODEL_FILE):
     st.error(f"Model file '{MODEL_FILE}' not found!")
@@ -41,18 +44,17 @@ with st.expander("📊 Show Raw Data"):
 # --- Dropdown: Show Data Visualization ---
 with st.expander("📈 Data Visualization"):
     st.subheader("Numerical Features Distribution")
-    fig, axes = plt.subplots(1, len(feature_names), figsize=(15, 5))
+    num_cols = [col for col in feature_names if data[col].dtype in ['int64', 'float64']]
     
-    for i, col in enumerate(feature_names):
-        if data[col].dtype in ['int64', 'float64']:  # Numerical data
-            sns.histplot(data[col], ax=axes[i], kde=True)
-            axes[i].set_title(col)
+    fig, axes = plt.subplots(1, len(num_cols), figsize=(15, 5))
+    
+    for i, col in enumerate(num_cols):
+        sns.histplot(data[col], ax=axes[i], kde=True)
+        axes[i].set_title(col)
     
     st.pyplot(fig)
 
     st.subheader("Categorical Features Distribution")
-    cat_cols = [col for col in feature_names if data[col].dtype == 'object']
-    
     for col in cat_cols:
         fig, ax = plt.subplots(figsize=(5, 3))
         sns.countplot(data=data, x=col, ax=ax)
@@ -64,13 +66,17 @@ st.subheader("📝 Input Your Data")
 
 user_data = {}
 for col in feature_names:
-    if data[col].dtype in ['int64', 'float64']:  # Numerical input
+    if col in num_cols:  # Numerical input
         user_data[col] = st.slider(f"Select {col}", float(data[col].min()), float(data[col].max()), float(data[col].mean()))
     else:  # Categorical input
         user_data[col] = st.selectbox(f"Select {col}", data[col].unique())
 
 # Convert user input into DataFrame
 user_df = pd.DataFrame([user_data])
+
+# Encode categorical features
+for col in cat_cols:
+    user_df[col] = user_df[col].astype("category").cat.codes  # Convert to numeric
 
 # --- Show User Input Data ---
 st.subheader("🗂 User Input Data")
