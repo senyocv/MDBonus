@@ -4,10 +4,24 @@ import numpy as np
 import pickle
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder, LabelEncoder
 import matplotlib.pyplot as plt
+import os
+
+# Check if files exist
+if not os.path.exists('MDBonus1.pkl'):
+    st.error("Model file 'MDBonus1.pkl' not found!")
+if not os.path.exists('obesity_data.csv'):
+    st.error("Data file 'obesity_data.csv' not found!")
 
 # Load the model and feature names
-with open('MDBonus1.pkl', 'rb') as file:
-    model, feature_names = pickle.load(file)
+try:
+    with open('MDBonus1.pkl', 'rb') as file:
+        content = pickle.load(file)
+        if isinstance(content, tuple) and len(content) == 2:
+            model, feature_names = content
+        else:
+            st.error("Unexpected content in 'MDBonus1.pkl'. Expected a tuple with two elements.")
+except Exception as e:
+    st.error(f"Error loading model: {e}")
 
 # Load the encoders and scaler
 ordinal_encoder = OrdinalEncoder(categories=[['no', 'Sometimes', 'Frequently', 'Always']])
@@ -15,8 +29,10 @@ label_encoders = {'Gender': LabelEncoder(), 'family_history_with_overweight': La
 scaler = StandardScaler()
 
 # Load the dataset
-DATA_PATH = 'obesity_data.csv'
-data = pd.read_csv(DATA_PATH)
+try:
+    data = pd.read_csv('obesity_data.csv')
+except Exception as e:
+    st.error(f"Error loading data: {e}")
 
 # Streamlit app
 st.title("Obesity Prediction")
@@ -36,29 +52,34 @@ input_data = pd.DataFrame({
     'Age': [age]
 })
 
-# Encode and scale input data
-input_data['CALC'] = ordinal_encoder.fit_transform(input_data[['CALC']])
-for col in ['Gender', 'family_history_with_overweight']:
-    input_data[col] = label_encoders[col].fit_transform(input_data[col])
-input_data = pd.DataFrame(scaler.fit_transform(input_data), columns=input_data.columns)
+try:
+    input_data['CALC'] = ordinal_encoder.fit_transform(input_data[['CALC']])
+    for col in ['Gender', 'family_history_with_overweight']:
+        input_data[col] = label_encoders[col].fit_transform(input_data[col])
+    input_data = pd.DataFrame(scaler.fit_transform(input_data), columns=input_data.columns)
+except Exception as e:
+    st.error(f"Error encoding or scaling input data: {e}")
 
-# Ensure the input data has the same feature names and order as the training data
-input_data = input_data.reindex(columns=feature_names)
+try:
+    input_data = input_data.reindex(columns=feature_names)
+except Exception as e:
+    st.error(f"Error reindexing input data: {e}")
 
-# Make prediction
-prediction = model.predict(input_data)[0]
+try:
+    prediction = model.predict(input_data)[0]
+    st.write(f"The predicted obesity level is: {prediction}")
+except Exception as e:
+    st.error(f"Error making prediction: {e}")
 
-# Display prediction
-st.write(f"The predicted obesity level is: {prediction}")
+try:
+    st.sidebar.header('Data Visualization')
+    selected_column = st.sidebar.selectbox('Select column for histogram', data.columns)
+    st.write(f"Histogram of {selected_column}")
+    st.bar_chart(data[selected_column].value_counts())
 
-# Histogram visualization
-st.sidebar.header('Data Visualization')
-selected_column = st.sidebar.selectbox('Select column for histogram', data.columns)
-st.write(f"Histogram of {selected_column}")
-st.bar_chart(data[selected_column].value_counts())
-
-# Optional: Using Matplotlib for more complex visualizations
-st.write(f"Detailed Histogram of {selected_column}")
-fig, ax = plt.subplots()
-ax.hist(data[selected_column], bins=20, edgecolor='black')
-st.pyplot(fig)
+    st.write(f"Detailed Histogram of {selected_column}")
+    fig, ax = plt.subplots()
+    ax.hist(data[selected_column], bins=20, edgecolor='black')
+    st.pyplot(fig)
+except Exception as e:
+    st.error(f"Error in data visualization: {e}")
