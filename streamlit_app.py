@@ -14,7 +14,7 @@ if not os.path.exists('obesity_data.csv'):
 
 try:
     with open('MDBonus1.pkl', 'rb') as file:
-        content = pickle.load(file)
+            content = pickle.load(file)
         if not os.path.exists('MDBonus1.pkl'):
     st.error("Model file 'MDBonus1.pkl' not found!")
 if not os.path.exists('obesity_data.csv'):
