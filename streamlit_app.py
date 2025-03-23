@@ -16,7 +16,7 @@ else:
     data = pd.read_csv(DATA_FILE)
 
 # Extract feature names (excluding target)
-target_column = "obese"
+target_column = "NObeyesdad"
 feature_names = data.drop(columns=[target_column]).columns.tolist()
 
 # Load trained model
