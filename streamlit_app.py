@@ -1,70 +1,64 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import joblib
+import pickle
+from sklearn.preprocessing import StandardScaler, OrdinalEncoder, LabelEncoder
+import matplotlib.pyplot as plt
 
-# Load model
-MODEL_PATH = "MDBonus1.pkl"
-model = joblib.load(MODEL_PATH)
+# Load the model and feature names
+with open('model.pkl', 'rb') as file:
+    model, feature_names = pickle.load(file)
 
-# Load dataset
-DATA_PATH = "obesity_data.csv"
+# Load the encoders and scaler
+ordinal_encoder = OrdinalEncoder(categories=[['no', 'Sometimes', 'Frequently', 'Always']])
+label_encoders = {'Gender': LabelEncoder(), 'family_history_with_overweight': LabelEncoder()}  # Add other label encoders as needed
+scaler = StandardScaler()
+
+# Load the dataset
+DATA_PATH = 'obesity_data.csv'
 data = pd.read_csv(DATA_PATH)
 
-# Sidebar title
-st.sidebar.title("Obesity Classification App")
+# Streamlit app
+st.title("Obesity Prediction")
 
-# Show raw data
-if st.sidebar.checkbox("Show Raw Data"):
-    st.subheader("Raw Dataset")
-    st.write(data)
+# Input fields
+st.sidebar.header('Input Features')
+gender = st.sidebar.selectbox('Gender', ['Male', 'Female'])
+family_history = st.sidebar.selectbox('Family History of Overweight', ['yes', 'no'])
+calc = st.sidebar.selectbox('CALC', ['no', 'Sometimes', 'Frequently', 'Always'])
+age = st.sidebar.slider('Age', 10, 90, 25)  # Example range
 
-# Data visualization
-st.sidebar.subheader("Data Visualization")
-plot_type = st.sidebar.selectbox("Select Plot Type", ["Histogram", "Boxplot"])
+# Create input DataFrame
+input_data = pd.DataFrame({
+    'Gender': [gender],
+    'family_history_with_overweight': [family_history],
+    'CALC': [calc],
+    'Age': [age]
+})
 
-if plot_type == "Histogram":
-    selected_column = st.sidebar.selectbox("Select Column", data.columns)
-    st.subheader(f"Histogram of {selected_column}")
-    st.hist_chart(data[selected_column])
-    
-elif plot_type == "Boxplot":
-    selected_column = st.sidebar.selectbox("Select Column", data.columns)
-    st.subheader(f"Boxplot of {selected_column}")
-    st.box_chart(data[selected_column])
+# Encode and scale input data
+input_data['CALC'] = ordinal_encoder.fit_transform(input_data[['CALC']])
+for col in ['Gender', 'family_history_with_overweight']:
+    input_data[col] = label_encoders[col].fit_transform(input_data[col])
+input_data = pd.DataFrame(scaler.fit_transform(input_data), columns=input_data.columns)
 
-# User input for prediction
-st.sidebar.subheader("Input Data for Prediction")
-user_input = {}
-
-# Numeric inputs (using sliders)
-numeric_columns = data.select_dtypes(include=[np.number]).columns
-for col in numeric_columns:
-    user_input[col] = st.sidebar.slider(f"{col}", float(data[col].min()), float(data[col].max()), float(data[col].mean()))
-
-# Categorical inputs (using selectbox)
-categorical_columns = data.select_dtypes(include=['object']).columns
-for col in categorical_columns:
-    user_input[col] = st.sidebar.selectbox(f"{col}", data[col].unique())
-
-# Convert input to DataFrame
-input_df = pd.DataFrame([user_input])
-
-# Show user input data
-st.subheader("User Input Data")
-st.write(input_df)
+# Ensure the input data has the same feature names and order as the training data
+input_data = input_data.reindex(columns=feature_names)
 
 # Make prediction
-if st.button("Predict"):
-    prediction = model.predict(input_df)
-    prediction_proba = model.predict_proba(input_df)
+prediction = model.predict(input_data)[0]
 
-    # Display prediction
-    st.subheader("Final Prediction")
-    st.write(f"Predicted Class: **{prediction[0]}**")
+# Display prediction
+st.write(f"The predicted obesity level is: {prediction}")
 
-    # Show probability per class
-    st.subheader("Classification Probabilities")
-    for i, prob in enumerate(prediction_proba[0]):
-        st.write(f"Class {i}: {prob:.4f}")
+# Histogram visualization
+st.sidebar.header('Data Visualization')
+selected_column = st.sidebar.selectbox('Select column for histogram', data.columns)
+st.write(f"Histogram of {selected_column}")
+st.bar_chart(data[selected_column].value_counts())
 
+# Optional: Using Matplotlib for more complex visualizations
+st.write(f"Detailed Histogram of {selected_column}")
+fig, ax = plt.subplots()
+ax.hist(data[selected_column], bins=20, edgecolor='black')
+st.pyplot(fig)
