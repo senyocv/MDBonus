@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import pickle
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder, LabelEncoder
+from sklearn.ensemble import RandomForestClassifier 
 import matplotlib.pyplot as plt
 import os
 import joblib
