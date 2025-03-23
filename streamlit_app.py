@@ -101,6 +101,11 @@ try:
 
     # Display processed user input
     st.write(user_df)
+
+    # Decode the Gender column for display purposes
+    user_df['Gender'] = LabelEncoder().inverse_transform(user_df['Gender'])
+    st.write("### User Input Data (Decoded Gender)")
+    st.write(user_df)
 except Exception as e:
     st.error(f"Error processing user input: {e}")
 
