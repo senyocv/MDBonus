@@ -15,7 +15,7 @@ if not os.path.exists('obesity_data.csv'):
 
 try:
     data = pd.read_csv('obesity_data.csv')
-    feature_names = data.drop(columns=['obese']).columns.tolist()  # Adjust target column name
+    feature_names = data.drop(columns=['NObeyesdad']).columns.tolist()  # Adjust target column name
 except Exception as e:
     st.error(f"Error loading dataset: {e}")
 
