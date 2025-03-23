@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler, OrdinalEncoder, LabelEncoder
 import matplotlib.pyplot as plt
 
 # Load the model and feature names
-with open('model.pkl', 'rb') as file:
+with open('MDBonus1.pkl', 'rb') as file:
     model, feature_names = pickle.load(file)
 
 # Load the encoders and scaler
