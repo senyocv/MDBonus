@@ -13,12 +13,16 @@ if not os.path.exists('MDBonus1.pkl'):
 if not os.path.exists('obesity_data.csv'):
     st.error("Data file 'obesity_data.csv' not found!")
 
-# Load model properly
+try:
+    data = pd.read_csv('obesity_data.csv')
+    feature_names = data.drop(columns=['obese']).columns.tolist()  # Adjust target column name
+except Exception as e:
+    st.error(f"Error loading dataset: {e}")
+
 try:
     with open('MDBonus1.pkl', 'rb') as file:
-        model = pickle.load(file)  # Load as a single object
+        model = pickle.load(file)
 
-    # Ensure the loaded object is a RandomForestClassifier
     if not isinstance(model, RandomForestClassifier):
         st.error("Loaded model is not a RandomForestClassifier!")
 
@@ -34,7 +38,6 @@ try:
 except Exception as e:
     st.error(f"Error loading data: {e}")
 
-# Streamlit app
 st.title("Obesity Prediction")
 
 # Input fields
