@@ -12,23 +12,15 @@ if not os.path.exists('MDBonus1.pkl'):
 if not os.path.exists('obesity_data.csv'):
     st.error("Data file 'obesity_data.csv' not found!")
 
+# Load model properly
 try:
     with open('MDBonus1.pkl', 'rb') as file:
-            content = pickle.load(file)
-        if not os.path.exists('MDBonus1.pkl'):
-    st.error("Model file 'MDBonus1.pkl' not found!")
-if not os.path.exists('obesity_data.csv'):
-    st.error("Data file 'obesity_data.csv' not found!")
+        model = pickle.load(file)  # Load as a single object
 
-try:
-    with open('MDBonus1.pkl', 'rb') as file:
-        content = pickle.load(file)
-        if isinstance(content, tuple) and len(content) == 2:
-            model, feature_names = content
-        else:
-            st.error("Unexpected content in 'MDBonus1.pkl'. Expected a tuple with two elements.")
-except Exception as e:
-    st.error(f"Error loading model: {e}")
+    # Ensure the loaded object is a RandomForestClassifier
+    if not isinstance(model, RandomForestClassifier):
+        st.error("Loaded model is not a RandomForestClassifier!")
+
 except Exception as e:
     st.error(f"Error loading model: {e}")
 
