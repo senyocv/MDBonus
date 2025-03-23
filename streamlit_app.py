@@ -5,14 +5,21 @@ import pickle
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder, LabelEncoder
 import matplotlib.pyplot as plt
 import os
+import joblib
 
-# Check if files exist
 if not os.path.exists('MDBonus1.pkl'):
     st.error("Model file 'MDBonus1.pkl' not found!")
 if not os.path.exists('obesity_data.csv'):
     st.error("Data file 'obesity_data.csv' not found!")
 
-# Load the model and feature names
+try:
+    with open('MDBonus1.pkl', 'rb') as file:
+        content = pickle.load(file)
+        if not os.path.exists('MDBonus1.pkl'):
+    st.error("Model file 'MDBonus1.pkl' not found!")
+if not os.path.exists('obesity_data.csv'):
+    st.error("Data file 'obesity_data.csv' not found!")
+
 try:
     with open('MDBonus1.pkl', 'rb') as file:
         content = pickle.load(file)
@@ -22,13 +29,13 @@ try:
             st.error("Unexpected content in 'MDBonus1.pkl'. Expected a tuple with two elements.")
 except Exception as e:
     st.error(f"Error loading model: {e}")
+except Exception as e:
+    st.error(f"Error loading model: {e}")
 
-# Load the encoders and scaler
 ordinal_encoder = OrdinalEncoder(categories=[['no', 'Sometimes', 'Frequently', 'Always']])
 label_encoders = {'Gender': LabelEncoder(), 'family_history_with_overweight': LabelEncoder()}  # Add other label encoders as needed
 scaler = StandardScaler()
 
-# Load the dataset
 try:
     data = pd.read_csv('obesity_data.csv')
 except Exception as e:
