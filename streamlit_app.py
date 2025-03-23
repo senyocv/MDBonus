@@ -21,6 +21,7 @@ feature_names = data.drop(columns=[target_column]).columns.tolist()
 
 # Identify categorical columns
 cat_cols = [col for col in feature_names if data[col].dtype == 'object']
+num_cols = [col for col in feature_names if col not in cat_cols]
 
 # Load trained model
 if not os.path.exists(MODEL_FILE):
@@ -44,7 +45,6 @@ with st.expander("📊 Show Raw Data"):
 # --- Dropdown: Show Data Visualization ---
 with st.expander("📈 Data Visualization"):
     st.subheader("Numerical Features Distribution")
-    num_cols = [col for col in feature_names if data[col].dtype in ['int64', 'float64']]
     
     fig, axes = plt.subplots(1, len(num_cols), figsize=(15, 5))
     
@@ -64,38 +64,13 @@ with st.expander("📈 Data Visualization"):
 # --- User Input Table ---
 st.subheader("📝 Input Your Data")
 
-user_data = {}
+# Store raw user input
+user_data_raw = {}
 for col in feature_names:
     if col in num_cols:  # Numerical input
-        user_data[col] = st.slider(f"Select {col}", float(data[col].min()), float(data[col].max()), float(data[col].mean()))
+        user_data_raw[col] = st.slider(f"Select {col}", float(data[col].min()), float(data[col].max()), float(data[col].mean()))
     else:  # Categorical input
-        user_data[col] = st.selectbox(f"Select {col}", data[col].unique())
+        user_data_raw[col] = st.selectbox(f"Select {col}", data[col].unique())
 
-# Convert user input into DataFrame
-user_df = pd.DataFrame([user_data])
-
-# Encode categorical features
-for col in cat_cols:
-    user_df[col] = user_df[col].astype("category").cat.codes  # Convert to numeric
-
-# --- Show User Input Data ---
-st.subheader("🗂 User Input Data")
-st.write(user_df)
-
-# --- Make Predictions ---
-if st.button("Predict"):
-    try:
-        prediction = model.predict(user_df)
-        probabilities = model.predict_proba(user_df)
-        
-        # Display probability per class
-        st.subheader("📊 Classification Probability")
-        prob_df = pd.DataFrame(probabilities, columns=model.classes_)
-        st.write(prob_df)
-
-        # Display final prediction
-        st.subheader("✅ Prediction Result")
-        st.write(f"Predicted Obesity Class: **{prediction[0]}**")
-
-    except Exception as e:
-        st.error(f"Error making prediction: {e}")
+# Convert user input into DataFrame (raw)
+user_df_raw
